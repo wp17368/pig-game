@@ -20,18 +20,26 @@ let players = [createNewPlayer('playerZero'), createNewPlayer('playerOne')];
 function addDomElementsToPlayersObjects() {
   for (let i = 0; i < players.length; i++) {
     players[i].sectionDomElement = document.querySelector(`.player--${i}`);
-    players[i].currentScoreDomElement = document.querySelector(`#score--${i}`);
-    players[i].scoreDomElement = document.querySelector(`#current--${i}`);
+    players[i].scoreDomElement = document.querySelector(`#score--${i}`);
+    players[i].currentScoreDomElement = document.querySelector(
+      `#current--${i}`
+    );
   }
 }
 addDomElementsToPlayersObjects();
-console.log(players[1]);
 
 function getActivePlayer() {
   if (players[0].active) {
     return players[0];
   } else {
     return players[1];
+  }
+}
+function getInactivePlayer() {
+  if (players[0].active) {
+    return players[1];
+  } else {
+    return players[0];
   }
 }
 function toggleActivePlayer() {
@@ -42,6 +50,8 @@ function toggleActivePlayer() {
     players[1].active = false;
     players[0].active = true;
   }
+  getActivePlayer().sectionDomElement.classList.toggle('player--active');
+  getInactivePlayer().sectionDomElement.classList.toggle('player--active');
 }
 function generateRandomNumber(minNumber, maxNumber) {
   return Math.floor(Math.random() * maxNumber + minNumber);
