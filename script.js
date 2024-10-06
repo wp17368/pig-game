@@ -6,17 +6,21 @@ const diceImage = document.querySelector('.dice');
 const playerZeroSection = document.querySelector('.player--0');
 const playerOneSection = document.querySelector('.player--1');
 
-function createNewPlayer(name) {
+let diceRollResult;
+let players;
+let gameWon;
+
+rollDiceButton.addEventListener('click', rollTheDice);
+holdButton.addEventListener('click', holdCurrentScore);
+startNewGameButton.addEventListener('click', startNewGame);
+
+function createNewPlayer(active) {
   return {
-    name: name,
     score: 0,
     currentScore: 0,
-    active: true,
+    active: active,
   };
 }
-
-let diceRollResult;
-let players = [createNewPlayer('playerZero'), createNewPlayer('playerOne')];
 function addDomElementsToPlayersObjects() {
   for (let i = 0; i < players.length; i++) {
     players[i].sectionDomElement = document.querySelector(`.player--${i}`);
@@ -26,8 +30,6 @@ function addDomElementsToPlayersObjects() {
     );
   }
 }
-addDomElementsToPlayersObjects();
-
 function getActivePlayer() {
   if (players[0].active) {
     return players[0];
@@ -43,23 +45,28 @@ function getInactivePlayer() {
   }
 }
 function toggleActivePlayer() {
-  if (players[0].active) {
-    players[0].active = false;
-    players[1].active = true;
-  } else {
-    players[1].active = false;
-    players[0].active = true;
-  }
-  getActivePlayer().sectionDomElement.classList.toggle('player--active');
-  getInactivePlayer().sectionDomElement.classList.toggle('player--active');
+  players[0].active = !players[0].active;
+  players[1].active = !players[1].active;
+  getActivePlayer().sectionDomElement.classList.add('player--active');
+  getInactivePlayer().sectionDomElement.classList.remove('player--active');
 }
 function generateRandomNumber(minNumber, maxNumber) {
   return Math.floor(Math.random() * maxNumber + minNumber);
 }
-// startNewGameButton.addEventListener('click');
-rollDiceButton.addEventListener('click', rollTheDice);
-holdButton.addEventListener('click', holdCurrentScore);
-
+function resetCurrentScore(player) {
+  player.currentScore = 0;
+}
+function resetPlayers() {
+  players = [createNewPlayer(true), createNewPlayer(false)];
+  addDomElementsToPlayersObjects();
+}
+function resetVictory() {
+  if (gameWon) {
+    toggleButtons();
+    gameWon = false;
+  }
+  gameWon = false;
+}
 function rollTheDice() {
   diceRollResult = generateRandomNumber(1, 6);
   displayDiceNumber(diceRollResult);
@@ -72,23 +79,47 @@ function rollTheDice() {
 function displayDiceNumber(diceRollResult) {
   diceImage.src = `dice-${diceRollResult}.png`;
 }
-function changeCurrentScore(activePlayer) {
+function changeCurrentScore(player) {
   if (diceRollResult != 1) {
-    activePlayer.currentScore += diceRollResult;
+    player.currentScore += diceRollResult;
   } else {
-    activePlayer.currentScore = 0;
+    resetCurrentScore(player);
   }
 }
-function displayCurrentScore(activePlayer) {
-  activePlayer.currentScoreDomElement.innerHTML = `${activePlayer.currentScore}`;
+function changeScore(player) {
+  player.score += player.currentScore;
+}
+function displayCurrentScore(player) {
+  player.currentScoreDomElement.innerHTML = `${player.currentScore}`;
 }
 function holdCurrentScore() {
-  getActivePlayer().score += getActivePlayer().currentScore;
-  displayNewScore(getActivePlayer());
-  getActivePlayer().currentScore = 0;
-  displayCurrentScore(getActivePlayer());
+  let player = getActivePlayer();
+  changeScore(player);
+  displayNewScore(player);
+  resetCurrentScore(player);
+  displayCurrentScore(player);
+  didPlayerWin(player);
   toggleActivePlayer();
 }
-function displayNewScore(activePlayer) {
-  activePlayer.scoreDomElement.innerText = activePlayer.score;
+function didPlayerWin(player) {
+  if (player.score >= 100) {
+    toggleButtons();
+    gameWon = true;
+  }
 }
+function displayNewScore(player) {
+  player.scoreDomElement.innerText = player.score;
+}
+function toggleButtons() {
+  rollDiceButton.classList.toggle('hidden');
+  holdButton.classList.toggle('hidden');
+}
+function startNewGame() {
+  resetPlayers();
+  displayCurrentScore(getActivePlayer());
+  displayNewScore(getActivePlayer());
+  displayCurrentScore(getInactivePlayer());
+  displayNewScore(getInactivePlayer());
+  resetVictory();
+}
+startNewGame();
